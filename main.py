@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from typing import Final
 import os
 
+# Error handling
+from asyncio import TimeoutError
+from datetime import datetime
+
 # Load the bot token from .env file
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
@@ -14,6 +18,11 @@ TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 # Setup bot to be interactive
 intents = discord.Intents.default()
 intents.message_content = True  # Enable message content intent
+
+# Google Translate import and initialization
+from googletrans import Translator
+from gtts import gTTS
+translator = Translator()
 
 # Set the bot command prefix and remove the default help function
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -125,6 +134,35 @@ async def language_codes(ctx):
 
         except TimeoutError:
             break
+
+
+@bot.command()  # Translate function which also adds a TTS file for the user to listen to the pronunciation
+async def translate(ctx, target_lang, *, message):
+    try:
+        translated_message = translator.translate(message, dest=target_lang)
+        tts = gTTS(translated_message.text, lang=target_lang)
+
+        # Generate a unique filename using user ID and timestamp
+        filename = f"translated_audio_{ctx.author.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.mp3"
+
+        tts.save(filename)  # Save the generated audio
+        embed = discord.Embed(
+            title="Translation",
+            description="Here is your translated message.",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Original Message", value=message, inline=False)
+        embed.add_field(name="Translated Message", value=translated_message.text, inline=False)
+        embed.set_footer(text=f"Translated to {target_lang.upper()}")
+
+        # Send the translated message and the downloadable audio file
+        await ctx.send(embed=embed)
+        await ctx.send(file=discord.File(filename))
+
+        # Remove the audio file after sending
+        os.remove(filename)
+    except Exception as e:
+        await ctx.send(f"An error occurred: {e}")
 
 
 # Run the bot using the bot token
