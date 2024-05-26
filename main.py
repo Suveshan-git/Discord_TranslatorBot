@@ -20,7 +20,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 bot.remove_command('help')
 
 
-@bot.event # Notification that the bot is ready to use once run
+@bot.event  # Notification that the bot is ready to use once run
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
