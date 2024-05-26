@@ -24,5 +24,30 @@ bot.remove_command('help')
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
+
+@bot.group(invoke_without_command=True)  # Custom help function to describe how to use the bot and what other commands the bot has
+async def help(ctx):
+    embed = discord.Embed(
+        title="Help",
+        description="TranslatorBot allows you to translate any message into another language! You can learn more about how to use the bot with the functions below:\n",
+        color=discord.Color.blue()
+    )
+    embed.add_field(
+        name="How to translate a message?",
+        value="```\n!translate <target_language_code> <message>\n```",
+        inline=False
+    )
+    embed.add_field(
+        name="Translate example",
+        value="```\n!translate fr Hello, how are you?\n```",
+        inline=False
+    )
+    embed.add_field(
+        name="How to get a list of Language codes?",
+        value="The command below will bring up a list of language codes you can use to translate your message into:```\n!language_codes\n```",
+        inline=False
+    )
+    await ctx.send(embed=embed)
+
 # Run the bot using the bot token
 bot.run(TOKEN)
